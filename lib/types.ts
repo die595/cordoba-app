@@ -27,6 +27,11 @@ export interface Article {
   sentiment?: number;
   alert?: string;
 }
+export interface DayBucket {
+  day?: string;   // El signo ? significa que es opcional
+  date?: string;  
+  count: number;
+}
 
 export interface NewsResponse {
   articles: Article[];
