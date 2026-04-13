@@ -19,6 +19,10 @@ export interface WordFreq {
   text: string;
   value: number;
 }
+export interface HourlyBucket {
+  hour: string;
+  count: number;
+}
 
 export interface NeighborhoodArticle {
   id: string;
