@@ -40,7 +40,7 @@ export function normalizeArticle(raw: {
     id,
     title,
     source: raw.source || "Desconocido",
-    publishedAt,
+    publishedAt: publishedAt instanceof Date ? publishedAt.toISOString() : String(publishedAt),
     summary,
     url,
   };
