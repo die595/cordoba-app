@@ -16,7 +16,7 @@ export function ArticleSection({ articles }: { articles: Article[] }) {
   const topics = useMemo(() => {
     const counts = new Map<Topic, number>();
     for (const a of articles) {
-      if (a.topic) counts.set(a.topic, (counts.get(a.topic) ?? 0) + 1);
+      if (a.topic) counts.set(a.topic as any, (counts.get(a.topic as any) ?? 0) + 1);
     }
     return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t);
   }, [articles]);
