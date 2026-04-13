@@ -15,7 +15,7 @@ export function ArticleCard({ article }: { article: Article }) {
     <article className="article-card rounded-lg p-4 flex flex-col gap-3 transition-colors cursor-default">
       <div className="flex items-start justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <TopicBadge topic={article.topic} />
+          <TopicBadge topic={article.topic as any} />
           <SourceBadge source={article.source} />
           {article.neighborhood && (
             <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs"
