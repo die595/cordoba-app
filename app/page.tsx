@@ -44,12 +44,12 @@ export default async function Home() {
       
       <main className="flex-1">
         <Dashboard 
-          stats={stats} 
-          weekly={weekly} 
-          words={words} 
-          neighborhoodArticles={municipalityData} 
-          dailySummary={dailySummary}
-          highRisks={highRisks}
+          stats={stats as any} 
+          weekly={weekly as any} 
+          words={words as any} 
+          neighborhoodArticles={municipalityData as any} 
+          dailySummary={dailySummary as any}
+          highRisks={highRisks as any}
           avgSentiment={avgSentiment}
         />
 
