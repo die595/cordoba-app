@@ -69,7 +69,8 @@ export async function scrapeAlcaldia(pages = 3): Promise<Article[]> {
           .update(title.slice(0, 60) + SOURCE)
           .digest("hex");
 
-        articles.push({ id, title, source: SOURCE, publishedAt: publishedAt as any, summary, url: articleUrl });
+        articles.push({ id, title, source: SOURCE, publishedAt: publishedAt instanceof Date ? publishedAt.toISOString() : String(publishedAt),
+           summary, url: articleUrl });
       });
 
       // Stop if no articles found on this page
