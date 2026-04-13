@@ -20,9 +20,9 @@ export default async function Home() {
   // 2. Ejecutamos todas las consultas de estadísticas en paralelo
   const [stats, weekly, words, municipalityData, dailySummary] = await Promise.all([
     getDashboardStats(),
-    getWeeklyActivity() as any,
-    getWordFrequencies() as Promise<WordFreq[]>,
-    getMunicipalityArticles() as Promise<NeighborhoodArticle[]>,
+    getWeeklyActivity(),
+    getWordFrequencies(),
+    getMunicipalityArticles(),
     getDailySummary() as Promise<string>,
   ]);
 
