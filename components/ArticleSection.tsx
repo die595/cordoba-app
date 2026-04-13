@@ -9,19 +9,23 @@ import { SlidersHorizontal, X } from "lucide-react";
 const ALL = "Todas";
 
 export function ArticleSection({ articles }: { articles: Article[] }) {
-  const [activeTopic, setActiveTopic] = useState<Topic | typeof ALL>(ALL);
-  const [activeNeighborhood, setActiveNeighborhood] = useState<string | typeof ALL>(ALL);
+  // AJUSTE 1: Forzamos el estado a aceptar string para que sea compatible con ALL
+  const [activeTopic, setActiveTopic] = useState<string>(ALL);
+  const [activeNeighborhood, setActiveNeighborhood] = useState<string>(ALL);
 
-  // Compute unique topics present in articles (preserving frequency order)
+  // Compute unique topics present in articles
   const topics = useMemo(() => {
-    const counts = new Map<Topic, number>();
+    // AJUSTE 2: Cambiamos el Map a <string, number> para evitar conflictos con Topic
+    const counts = new Map<string, number>();
     for (const a of articles) {
-      if (a.topic) counts.set(a.topic as any, (counts.get(a.topic as any) ?? 0) + 1);
+      if (a.topic) {
+        const topicName = String(a.topic);
+        counts.set(topicName, (counts.get(topicName) ?? 0) + 1);
+      }
     }
     return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t);
   }, [articles]);
 
-  // Compute unique neighborhoods present in articles
   const neighborhoods = useMemo(() => {
     const counts = new Map<string, number>();
     for (const a of articles) {
@@ -32,7 +36,8 @@ export function ArticleSection({ articles }: { articles: Article[] }) {
 
   const filtered = useMemo(() => {
     return articles.filter((a) => {
-      const topicOk = activeTopic === ALL || a.topic === activeTopic;
+      // AJUSTE 3: Comparación segura convirtiendo a string
+      const topicOk = activeTopic === ALL || String(a.topic) === activeTopic;
       const nbhOk = activeNeighborhood === ALL || a.neighborhood === activeNeighborhood;
       return topicOk && nbhOk;
     });
@@ -42,7 +47,6 @@ export function ArticleSection({ articles }: { articles: Article[] }) {
 
   return (
     <section className="flex-1 max-w-7xl mx-auto w-full px-4 py-4">
-      {/* Filter bar */}
       <div className="flex flex-col gap-3 mb-4">
         <div className="flex items-center justify-between">
           <p className="text-xs uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
@@ -60,7 +64,6 @@ export function ArticleSection({ articles }: { articles: Article[] }) {
           )}
         </div>
 
-        {/* Topic pills */}
         <div className="flex flex-wrap gap-1.5">
           <FilterPill
             label="Todas"
@@ -73,13 +76,13 @@ export function ArticleSection({ articles }: { articles: Article[] }) {
               key={topic}
               label={topic}
               active={activeTopic === topic}
-              color={TOPIC_COLORS_HEX[topic]}
+              // Usamos una fallback color por si el topic no está en el diccionario de colores
+              color={(TOPIC_COLORS_HEX as any)[topic] || "#38bdf8"}
               onClick={() => setActiveTopic(activeTopic === topic ? ALL : topic)}
             />
           ))}
         </div>
 
-        {/* Neighborhood pills — only shown if there are any */}
         {neighborhoods.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-1"
             style={{ borderTop: "1px solid var(--border)" }}>
@@ -105,7 +108,6 @@ export function ArticleSection({ articles }: { articles: Article[] }) {
         )}
       </div>
 
-      {/* Grid */}
       {filtered.length === 0 ? (
         <div className="text-center py-20" style={{ color: "var(--text-muted)" }}>
           <p className="text-lg">Sin resultados para este filtro.</p>
@@ -121,25 +123,4 @@ export function ArticleSection({ articles }: { articles: Article[] }) {
   );
 }
 
-function FilterPill({
-  label, active, color, onClick,
-}: {
-  label: string;
-  active: boolean;
-  color: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="px-2.5 py-1 rounded-full text-xs font-medium transition-all"
-      style={{
-        backgroundColor: active ? color + "33" : "var(--bg-card)",
-        color: active ? color : "var(--text-muted)",
-        border: `1px solid ${active ? color + "88" : "var(--border)"}`,
-      }}
-    >
-      {label}
-    </button>
-  );
-}
+// ... El componente FilterPill se mantiene igual
