@@ -21,7 +21,7 @@ export function ArticleSection({ articles }: { articles: Article[] }) {
         counts.set(t, (counts.get(t) ?? 0) + 1);
       }
     }
-    return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t);
+    return [...counts.entries()].sort((a, b) => (b[1] as number) - (a[1] as number)).map(([t]) => t);
   }, [articles]);
 
   // 2. Obtenemos los municipios (neighborhoods) únicos
