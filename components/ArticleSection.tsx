@@ -9,31 +9,35 @@ import { SlidersHorizontal, X } from "lucide-react";
 const ALL = "Todas";
 
 export function ArticleSection({ articles }: { articles: Article[] }) {
-  // AJUSTE 1: Forzamos el estado a aceptar string para que sea compatible con ALL
   const [activeTopic, setActiveTopic] = useState<string>(ALL);
   const [activeNeighborhood, setActiveNeighborhood] = useState<string>(ALL);
 
-  // Compute unique topics present in articles
+  // 1. Obtenemos los temas (topics) únicos
   const topics = useMemo(() => {
-    // AJUSTE 2: Cambiamos el Map a <string, number> para evitar conflictos con Topic
-   const counts = new Map<any, number>();
+    const counts = new Map<any, number>();
     for (const a of articles) {
-      if (a.topic) counts.set(a.topic as any, (counts.get(a.topic as any) ?? 0) + 1);
+      if (a.topic) {
+        const t = a.topic as any;
+        counts.set(t, (counts.get(t) ?? 0) + 1);
       }
-      return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t);
-      }, [articles]);
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t);
+  }, [articles]);
 
+  // 2. Obtenemos los municipios (neighborhoods) únicos
   const neighborhoods = useMemo(() => {
     const counts = new Map<string, number>();
     for (const a of articles) {
-      if (a.neighborhood) counts.set(a.neighborhood, (counts.get(a.neighborhood) ?? 0) + 1);
+      if (a.neighborhood) {
+        counts.set(a.neighborhood, (counts.get(a.neighborhood) ?? 0) + 1);
+      }
     }
     return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([n]) => n);
   }, [articles]);
 
+  // 3. Filtrado de noticias
   const filtered = useMemo(() => {
     return articles.filter((a) => {
-      // AJUSTE 3: Comparación segura convirtiendo a string
       const topicOk = activeTopic === ALL || String(a.topic) === activeTopic;
       const nbhOk = activeNeighborhood === ALL || a.neighborhood === activeNeighborhood;
       return topicOk && nbhOk;
@@ -61,6 +65,7 @@ export function ArticleSection({ articles }: { articles: Article[] }) {
           )}
         </div>
 
+        {/* Temas */}
         <div className="flex flex-wrap gap-1.5">
           <FilterPill
             label="Todas"
@@ -73,16 +78,15 @@ export function ArticleSection({ articles }: { articles: Article[] }) {
               key={topic}
               label={topic}
               active={activeTopic === topic}
-              // Usamos una fallback color por si el topic no está en el diccionario de colores
               color={(TOPIC_COLORS_HEX as any)[topic] || "#38bdf8"}
               onClick={() => setActiveTopic(activeTopic === topic ? ALL : topic)}
             />
           ))}
         </div>
 
+        {/* Municipios */}
         {neighborhoods.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pt-1"
-            style={{ borderTop: "1px solid var(--border)" }}>
+          <div className="flex flex-wrap gap-1.5 pt-1" style={{ borderTop: "1px solid var(--border)" }}>
             <span className="text-xs self-center mr-1" style={{ color: "var(--text-muted)" }}>
               Municipios:
             </span>
@@ -105,6 +109,7 @@ export function ArticleSection({ articles }: { articles: Article[] }) {
         )}
       </div>
 
+      {/* Grid de Artículos */}
       {filtered.length === 0 ? (
         <div className="text-center py-20" style={{ color: "var(--text-muted)" }}>
           <p className="text-lg">Sin resultados para este filtro.</p>
@@ -120,4 +125,26 @@ export function ArticleSection({ articles }: { articles: Article[] }) {
   );
 }
 
-// ... El componente FilterPill se mantiene igual
+// ESTA ES LA PARTE QUE TE FALTABA PARA QUE NO MARQUE ROJO
+function FilterPill({
+  label, active, color, onClick,
+}: {
+  label: string;
+  active: boolean;
+  color: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="px-2.5 py-1 rounded-full text-xs font-medium transition-all"
+      style={{
+        backgroundColor: active ? color + "33" : "var(--bg-card)",
+        color: active ? color : "var(--text-muted)",
+        border: `1px solid ${active ? color + "88" : "var(--border)"}`,
+      }}
+    >
+      {label}
+    </button>
+  );
+}
