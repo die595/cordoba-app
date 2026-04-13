@@ -16,15 +16,12 @@ export function ArticleSection({ articles }: { articles: Article[] }) {
   // Compute unique topics present in articles
   const topics = useMemo(() => {
     // AJUSTE 2: Cambiamos el Map a <string, number> para evitar conflictos con Topic
-    const counts = new Map<string, number>();
+   const counts = new Map<any, number>();
     for (const a of articles) {
-      if (a.topic) {
-        const topicName = String(a.topic);
-        counts.set(topicName, (counts.get(topicName) ?? 0) + 1);
+      if (a.topic) counts.set(a.topic as any, (counts.get(a.topic as any) ?? 0) + 1);
       }
-    }
-    return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t);
-  }, [articles]);
+      return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t);
+      }, [articles]);
 
   const neighborhoods = useMemo(() => {
     const counts = new Map<string, number>();
