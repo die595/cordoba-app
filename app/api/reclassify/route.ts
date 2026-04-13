@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     id: row.id as string,
     title: row.title as string,
     source: row.source as string,
-    publishedAt: new Date(row.published_at as string),
+    publishedAt: new Date(row.published_at as string).toISOString(),
     summary: row.summary as string ?? "",
     url: row.url as string,
   }));
