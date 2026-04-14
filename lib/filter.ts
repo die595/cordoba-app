@@ -31,16 +31,18 @@ export function filterCordobaRelevant(articles: any[]) {
   return articles.filter(article => {
     const text = `${article.title} ${article.summary || ""}`.toLowerCase();
     
-    // Eliminamos ruido de otras regiones
-    if (text.includes("ca") || text.includes("va")) return false;
+    const ignoreRegions = ["valle del cauca", "cauca", "vaupés", "casanare"];
+    if (ignoreRegions.some(region => text.includes(region))) return false;
 
-    // 1. ¿Menciona alguno de los municipios que ya tenemos en el mapa?
     const hasLocation = MUNICIPIOS_ACTUALES.some(muni => text.includes(muni));
-    
-    // 2. ¿Es una de las alertas de seguridad que solicitaste?
     const isSecurityAlert = ALERT_KEYWORDS.some(key => text.includes(key));
+    const isGeneralCordoba = text.includes("córdoba") && isSecurityAlert;
 
-    // Solo pasa si tiene ubicación reconocida Y es un tema de seguridad
-    return hasLocation && isSecurityAlert;
+    const passes = (hasLocation && isSecurityAlert) || isGeneralCordoba;
+
+    // AHORA SÍ: El log antes del return para poder verlo en Vercel
+    console.log(`🔎 [FILTRO] Título: ${article.title.substring(0, 50)}... | Pasa: ${passes}`);
+
+    return passes;
   });
 }
