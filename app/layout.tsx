@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     siteName: "DATACORE",
     images: [
       {
-        url: "https://cordoba-app-ws6q.vercel.app/logo.png", // Usa la URL de producción
+        url: "https://cordoba-app-ws6q.vercel.app/logo-share.png", // Usa la URL de producción
         width: 1200,
         height: 630,
         alt: "Logo de DATACORE Monitor de Seguridad",
@@ -22,14 +22,3 @@ export const metadata: Metadata = {
     type: "website",
   },
 };
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="es">
-      <body>{children}</body>
-    </html>
-  );
-}
