@@ -125,26 +125,31 @@ export async function getDailySummary(): Promise<string> {
  * ACTIVIDAD SEMANAL (GRÁFICO)
  */
 export async function getWeeklyActivity() {
-  const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString();
-  const { data } = await supabase
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const { data, error } = await supabase
     .from("articles")
-    .select("published_at, fetched_at, neighborhood")
+    // 1. AGREGA LOS CAMPOS AQUÍ (Separados por coma)
+    .select("created_at, fetched_at, published_at") 
     .in("neighborhood", MUNICIPIOS_CORDOBA)
-    .gte("fetched_at", fifteenDaysAgo);
+    .gte("created_at", sevenDaysAgo.toISOString());
 
   const counts = new Map<string, number>();
+  
   for (const row of data ?? []) {
-    const dateValue = row.fetched_at || row.published_at;
+    // 2. Ahora TypeScript ya reconocerá estos campos
+    const dateValue = row.fetched_at || row.published_at || row.created_at; 
+    
     if (dateValue) {
       const d = new Date(dateValue as string);
       const key = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
       counts.set(key, (counts.get(key) ?? 0) + 1);
     }
   }
-
-  return Array.from(counts.entries())
-    .map(([date, count]) => ({ date, count }))
-    .sort((a, b) => a.date.localeCompare(b.date));
+  
+  // No olvides retornar los datos formateados para el gráfico
+  return Array.from(counts.entries()).map(([date, count]) => ({ date, count }));
 }
 
 /**
