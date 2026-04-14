@@ -42,11 +42,11 @@ export interface NeighborhoodArticle {
  * OBTIENE ESTADÍSTICAS GENERALES
  */
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString();
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
   const [totalRes, last24hRes, byTopicRes, bySourceRes] = await Promise.all([
     supabase.from("articles").select("*", { count: "exact", head: true }).in("neighborhood", MUNICIPIOS_CORDOBA),
-    supabase.from("articles").select("*", { count: "exact", head: true }).gte("fetched_at", fifteenDaysAgo).in("neighborhood", MUNICIPIOS_CORDOBA),
+    supabase.from("articles").select("*", { count: "exact", head: true }).gte("fetched_at", oneDayAgo).in("neighborhood", MUNICIPIOS_CORDOBA),
     supabase.from("articles").select("topic").not("topic", "is", null).in("neighborhood", MUNICIPIOS_CORDOBA),
     supabase.from("articles").select("source").in("neighborhood", MUNICIPIOS_CORDOBA),
   ]);
@@ -82,13 +82,13 @@ export async function getDashboardStats(): Promise<DashboardStats> {
  * ARTÍCULOS PARA EL MAPA (15 DÍAS)
  */
 export async function getMunicipalityArticles() {
-  const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString();
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
   const { data, error } = await supabase
     .from("articles")
     .select("*")
     .in("neighborhood", MUNICIPIOS_CORDOBA)
-    .gte("fetched_at", fifteenDaysAgo)
+    .gte("fetched_at", sevenDaysAgo) // <-- Cambiado de 15 a 7
     .order("published_at", { ascending: false });
 
   if (error) return null;
@@ -156,12 +156,12 @@ export async function getWeeklyActivity() {
  * FRECUENCIA DE PALABRAS
  */
 export async function getWordFrequencies(): Promise<WordFreq[]> {
-  const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString();
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data } = await supabase
     .from("articles")
     .select("title, resumen")
     .in("neighborhood", MUNICIPIOS_CORDOBA)
-    .gte("fetched_at", fifteenDaysAgo);
+    .gte("fetched_at", sevenDaysAgo);
 
   if (!data) return [];
   
