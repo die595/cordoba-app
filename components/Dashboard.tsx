@@ -177,9 +177,17 @@ export function Dashboard({
         {/* Resumen IA */}
         <ChartPanel title="Análisis Estratégico IA" icon={<TrendingUp className="w-4 h-4" />}>
           <div className="text-sm leading-relaxed text-slate-300 italic opacity-90">
-            "{dailySummary || "Analizando patrones de seguridad en el departamento..."}"
-          </div>
-        </ChartPanel>
+            {dailySummary && dailySummary !== "Análisis no disponible" ? (
+              `"${dailySummary}"`
+              ) : (
+                <div className="flex items-center gap-2 text-blue-400 animate-pulse">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Generando reporte estratégico en tiempo real...</span>
+                  </div>
+                  )}
+                  </div>
+                  </ChartPanel>
+           
 
         {/* Tópicos */}
         <ChartPanel title="Distribución de Riesgos" icon={<AlertCircle className="w-4 h-4" />}>
