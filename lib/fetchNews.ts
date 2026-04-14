@@ -75,17 +75,20 @@ export async function fetchAllNews(): Promise<NewsResponse> {
   const fetchedAt = new Date().toISOString();
 
   // 3. GUARDADO INTELIGENTE (UPSERT)
+  // ... (mismo inicio de código hasta el mapeo de municipios)
+
+  // 3. GUARDADO INTELIGENTE (UPSERT)
   if (deduped.length > 0) {
     const { error } = await supabaseAdmin.from("articles").upsert(
       deduped.map((a: Article) => ({
         id: a.id,
         title: a.title,
         source: a.source,
-        published_at: new Date(a.publishedAt || new Date()).toISOString(),
+        published_at: new Date(a.publishedAt).toISOString(),
         description: a.summary || "Sin descripción", 
         url: a.url,
         fetched_at: fetchedAt,
-        topic: (String(a.topic || "GENERAL")).toUpperCase(), // Forzamos a string
+        topic: String(a.topic || "GENERAL").toUpperCase(),
         neighborhood: a.neighborhood, 
       })),
       { onConflict: "id" }
@@ -93,22 +96,25 @@ export async function fetchAllNews(): Promise<NewsResponse> {
     if (error) console.error("[supabase] upsert failed:", error.message);
   }
 
-  // 4. CLASIFICACIÓN CON IA (Solo si son noticias nuevas)
-  // No gastamos API si no hay noticias
+  // 4. CLASIFICACIÓN CON IA (DeepSeek / Gemini)
   if (deduped.length > 0) {
     classifyArticles(deduped)
-      .then((classified) => {
-         const updates = classified.map((a: Article) => ({
+      .then(async (classified: any[]) => { // Usamos any[] temporalmente para recibir los datos de la IA
+          const updates = classified.map((a) => ({
             id: a.id,
-            topic: a.topic as any, // Bypass de seguridad
-            neighborhood: a.neighborhood as any,
-            threat_level: (a as any).threat_level,
-            sentiment: (a as any).sentiment,
-            alert: (a as any).alert
-         }));
-         
-         // Actualizamos con los datos de inteligencia de Gemini
-         return supabaseAdmin.from("articles").upsert(updates, { onConflict: "id" });
+            topic: a.topic,
+            neighborhood: a.neighborhood,
+            threat_level: a.threat_level || "Bajo",
+            sentiment: a.sentiment || "Neutral",
+            alert: a.alert || false
+          }));
+          
+          // Actualizamos en Supabase
+          const { error: updateError } = await supabaseAdmin
+            .from("articles")
+            .upsert(updates, { onConflict: "id" });
+            
+          if (updateError) console.error("[Update Error]:", updateError.message);
       })
       .catch((err) => console.error("[Intelligence Error]:", err.message));
   }

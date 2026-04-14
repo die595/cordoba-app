@@ -5,6 +5,15 @@ const deepseek = new OpenAI({
   apiKey: process.env.DEEPSEEK_API_KEY,
   baseURL: "https://api.deepseek.com", // Muy importante para que apunte a DeepSeek
 });
+interface Article {
+  id?: string;
+  title: string;
+  content: string; // o 'description', dependiendo de tu scraper
+  municipio?: string;
+  category?: string;
+  risk_level?: string;
+  url?: string;
+}
 
 export async function classifyArticles(articles: Article[]): Promise<Article[]> {
   try {
