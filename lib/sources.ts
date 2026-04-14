@@ -20,13 +20,13 @@ export const RSS_SOURCES: FeedSource[] = [
   },
   {
     name: "Google News - Gobernacion Cordoba",
-    url: "https://news.google.com/rss/search?q=Cordoba+Colombia+site:cordoba.gov.co+OR+source:%22El+Meridiano%22&hl=es-419&gl=CO&ceid=CO:es-419",
+    url: "https://news.google.com/rss/search?q=Cordoba+Colombia+when:24h&hl=es-419&gl=CO&ceid=CO:es-419",
     filterRequired: true,
     color: "yellow",
   },
   {
     name: "Google News - Chicanoticias",
-    url: "https://news.google.com/rss/search?q=site:chicanoticias.com+Cordoba+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
+    url: "https://chicanoticias.com/feed/",
     filterRequired: false,
     color: "green",
   },
@@ -38,19 +38,19 @@ export const RSS_SOURCES: FeedSource[] = [
   },
   {
     name: "Elmeridiano",
-    url: "https://rss.app/feeds/J9FEaiDvuaSe0f8Y.xml",
+    url: "https://elmeridiano.co/cordoba/feed/",
     filterRequired: false,
     color: "pink",
   },
   {
     name: "LaRazon",
-    url: "https://rss.app/feeds/oxwyFvnDQ333t5Bx.xml",
+    url: "https://larazon.co/feed/",
     filterRequired: true,
     color: "green",
   },
   {
   name: "Twitter X",
-  url: "https://rss.app/feeds/D9RgavDgEfuD5H9L.xml",
+  url: "https://news.google.com/rss/search?q=site:twitter.com+Cordoba+Colombia+judicial+OR+seguridad+when:24h&hl=es-419&gl=CO&ceid=CO:es-419",
   filterRequired: true,
   color: "lime",
   },
