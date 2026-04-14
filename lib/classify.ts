@@ -1,74 +1,38 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { Article } from "./types"; // Asegúrate de importar tu interfaz Article
+import OpenAI from "openai";
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || "");
+// Inicializamos el cliente de DeepSeek usando el SDK de OpenAI
+const deepseek = new OpenAI({
+  apiKey: process.env.DEEPSEEK_API_KEY,
+  baseURL: "https://api.deepseek.com", // Muy importante para que apunte a DeepSeek
+});
 
 export async function classifyArticles(articles: Article[]): Promise<Article[]> {
   try {
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      generationConfig: { responseMimeType: "application/json" }
+    // Definimos el prompt para el análisis de seguridad en Córdoba
+    const prompt = `Analiza los siguientes artículos de noticias y clasifícalos en formato JSON. 
+    Para cada artículo, identifica: 
+    1. Categoría (Seguridad, Orden Público, Salud, etc.)
+    2. Municipio de Córdoba (debe ser uno de: Montería, Cereté, Sahagún, etc.)
+    3. Nivel de riesgo (Bajo, Medio, Alto).
+    
+    Artículos a procesar: ${JSON.stringify(articles)}`;
+
+    const response = await deepseek.chat.completions.create({
+      model: "deepseek-chat", // El modelo estándar de DeepSeek
+      messages: [
+        { role: "system", content: "Eres un experto en análisis de seguridad y experto en la geografía del departamento de Córdoba, Colombia. Responde estrictamente en formato JSON." },
+        { role: "user", content: prompt },
+      ],
+      response_format: { type: 'json_object' } // Mantiene la consistencia que tenías con Gemini
     });
 
-    const prompt = `
-      Actúa como un Experto en Inteligencia y Gestión de Riesgos para una empresa en Córdoba, Colombia.
-      Analiza los siguientes artículos y para cada uno genera un objeto JSON detallado.
-
-      Campos obligatorios por artículo:
-      1. topic: Clasifica en (SEGURIDAD, SOCIAL, POLÍTICA, CLIMA, INFRAESTRUCTURA).
-      2. neighborhood: Municipio de Córdoba afectado.
-      3. summary: Resumen ejecutivo de impacto.
-      4. sentiment: Puntaje de -1.0 (muy hostil/negativo) a 1.0 (muy positivo).
-      5. threat_level: Nivel de riesgo para la operación empresarial (BAJO, MEDIO, ALTO).
-      6. alert: Si el riesgo es ALTO, describe brevemente la posible represalia (ej. Bloqueo de vía, asonada, sabotaje).
-
-      Artículos a procesar:
-      ${JSON.stringify(articles.map(a => ({ id: a.id, title: a.title, desc: a.summary })))}
-
-      Responde estrictamente en este formato JSON:
-      {
-        "articles": [
-          { 
-            "id": "...", 
-            "topic": "...", 
-            "neighborhood": "...", 
-            "summary": "...", 
-            "sentiment": 0.0, 
-            "threat_level": "...", 
-            "alert": "..." 
-          }
-        ]
-      }
-    `;
-
-    const result = await model.generateContent(prompt);
-    const response = JSON.parse(result.response.text());
+    const result = JSON.parse(response.choices[0].message.content || "[]");
     
-    // Unimos los datos originales con los datos de inteligencia de la IA
-    const classifiedData = response.articles;
-    
-    return articles.map(original => {
-      const aiData = classifiedData.find((a: any) => a.id === original.id);
-      return {
-        ...original,
-        topic: aiData?.topic || original.topic,
-        neighborhood: aiData?.neighborhood || original.neighborhood,
-        summary: aiData?.summary || original.summary,
-        sentiment: aiData?.sentiment ?? 0,
-        threat_level: aiData?.threat_level || "BAJO",
-        alert: aiData?.alert || ""
-      };
-    });
+    // Aquí mapeas el resultado a tu estructura de Article[]
+    return result.articles || result; 
 
   } catch (error) {
-    console.error("Error en clasificación avanzada:", error);
-    return articles.map(a => ({ 
-      ...a, 
-      topic: "GENERAL", 
-      neighborhood: "Córdoba", 
-      sentiment: 0, 
-      threat_level: "BAJO",
-      alert: "Sin alertas detectadas"
-    }));
+    console.error("Error con DeepSeek:", error);
+    return articles; // Retorna los artículos originales si falla
   }
 }

@@ -11,7 +11,7 @@ import { ArticleSection } from "@/components/ArticleSection";
 import { Header } from "@/components/Header";
 import { Dashboard } from "@/components/Dashboard";
 
-export const revalidate = 1800; // Se actualiza cada 30 minutos
+export const revalidate = 60; // Se actualiza cada 30 minutos
 
 export default async function Home() {
   // 1. Obtenemos las noticias y las subimos a Supabase

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchAllNews } from "@/lib/fetchNews";
 
-export const revalidate = 1800; // 30 minutes
+export const revalidate = 60; // 30 minutes
 
 export async function GET() {
   try {

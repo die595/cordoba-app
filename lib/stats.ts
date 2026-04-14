@@ -3,8 +3,8 @@ import { supabase } from "./supabase";
 import { DashboardStats } from "./types";
 
 // 1. CONFIGURACIÓN DE IA (Cambio a modelo estable para evitar error 404)
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const genAI = new GoogleGenerativeAI(process.env.DEEPSEEK_API_KEY!);
+const model = genAI.getGenerativeModel({ model: "deepseek-chat" });
 
 // 2. LISTA MAESTRA DE MUNICIPIOS DE CÓRDOBA
 const MUNICIPIOS_CORDOBA = [
