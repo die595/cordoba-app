@@ -29,3 +29,4 @@ export async function generateStrategicReport(articles: any[]) {
     return "Análisis no disponible.";
   }
 }
+// Revisión final DATACORE.
