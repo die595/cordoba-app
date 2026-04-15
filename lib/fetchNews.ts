@@ -1,13 +1,14 @@
+// @ts-ignore
+import { generateStrategicReport } from "./strategicAnalysis";
 import * as dotenv from 'dotenv';
 import path from 'path';
 import Parser from "rss-parser";
-import { Article, NewsResponse } from "./types";
+import { Article, NewsResponse } from "./types";  
 import { RSS_SOURCES } from "./sources";
 import { normalizeArticle, deduplicateArticles } from "./normalize";
 import { supabaseAdmin } from "./supabaseAdmin";
 // Importación corregida para evitar el error de "not a function"
 import { classifyArticles } from "./classify"; // Importación directa entre llaves
-import { generateStrategicReport } from "./strategicAnalysis";
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
