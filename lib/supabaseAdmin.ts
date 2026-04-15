@@ -1,16 +1,28 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from '@supabase/supabase-js';
+import * as dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
 
-// Server-only admin client — uses service_role key.
-// NEVER import this in client components or expose via NEXT_PUBLIC_ vars.
-// Used exclusively for INSERT/UPDATE operations in server-side code.
+// Buscamos el archivo .env.local de forma más agresiva
+const envPath = path.resolve(process.cwd(), '.env.local');
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !serviceRoleKey) {
-  throw new Error("Faltan las variables de entorno de SupabaseAdmin");
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+} else {
+  // Si falla el primero, probamos un nivel arriba (por si acaso)
+  dotenv.config({ path: path.join(__dirname, '../.env.local') });
 }
 
-export const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-  auth: { persistSession: false },
-});
+// Usamos .trim() para limpiar cualquier espacio o salto de línea invisible
+const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
+const supabaseServiceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+
+console.log("--- DEBUG CONEXIÓN ---");
+console.log("URL detectada:", supabaseUrl ? `SÍ (${supabaseUrl.substring(0, 20)}...)` : "NO (VACÍO)");
+console.log("----------------------");
+
+if (!supabaseUrl || !supabaseUrl.startsWith('http')) {
+  throw new Error(`CRÍTICO: URL no válida. Valor: "${supabaseUrl}"`);
+}
+
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);

@@ -16,16 +16,15 @@ export type Topic =
 export interface Article {
   id: string;
   title: string;
-  url: string;
-  publishedAt: string;
   source: string;
-  summary?: string;
+  publishedAt: string;
+  url: string;
+  summary: string;
+  // Campos opcionales para la IA:
   topic?: string;
   neighborhood?: string;
-  // Estos son los que faltan:
-  threat_level?: string; 
-  sentiment?: number;
-  alert?: string;
+  threat_level?: string;
+  sentiment?: string;
 }
 export interface DayBucket {
   date: string;  // Antes decía "day", cámbialo a "date"

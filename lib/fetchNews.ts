@@ -1,26 +1,28 @@
+import * as dotenv from 'dotenv';
+import path from 'path';
 import Parser from "rss-parser";
-import { Article, NewsResponse, Topic } from "./types";
+import { Article, NewsResponse } from "./types";
 import { RSS_SOURCES } from "./sources";
 import { normalizeArticle, deduplicateArticles } from "./normalize";
-import { supabase } from "./supabase";
 import { supabaseAdmin } from "./supabaseAdmin";
-import { classifyArticles } from "./classify";
+// Importación corregida para evitar el error de "not a function"
+import { classifyArticles } from "./classify"; // Importación directa entre llaves
+import { generateStrategicReport } from "./strategicAnalysis";
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
 const parser = new Parser({
   timeout: 8000,
   headers: { "User-Agent": "Mozilla/5.0 (compatible; CordobaMonitor/1.0)" },
 });
 
-// --- MEJORA 1: FILTRADO POR FECHA (7 DÍAS) ---
 async function fetchFeed(url: string, sourceName: string): Promise<Article[]> {
   try {
     const feed = await parser.parseURL(url);
     const articles: Article[] = [];
+    const latestItems = (feed.items || []).slice(0, 15);
     
-    // Calculamos el límite de 7 días atrás
-   const latestItems = (feed.items || []).slice(0, 10);
-   for (const item of latestItems) {
-    
+    for (const item of latestItems) {
       const article = normalizeArticle({
         title: item.title,
         link: item.link,
@@ -30,7 +32,7 @@ async function fetchFeed(url: string, sourceName: string): Promise<Article[]> {
         isoDate: item.isoDate,
         source: sourceName,
       });
-      if (article) articles.push(article);
+      if (article && article.title) articles.push(article);
     }
     return articles;
   } catch (error) {
@@ -40,7 +42,8 @@ async function fetchFeed(url: string, sourceName: string): Promise<Article[]> {
 }
 
 export async function fetchAllNews(): Promise<NewsResponse> {
-  // 1. Obtener noticias recientes
+  console.log("🚀 [DATACORE] Iniciando recolección de noticias...");
+  
   const rssResults = await Promise.allSettled(
     RSS_SOURCES.map((s) => fetchFeed(s.url, s.name))
   );
@@ -50,37 +53,44 @@ export async function fetchAllNews(): Promise<NewsResponse> {
     if (result.status === "fulfilled") allArticles.push(...result.value);
   }
 
-  // 2. DEDUPLICACIÓN Y MAPEO DE MUNICIPIOS MEJORADO
-  const deduped: Article[] = deduplicateArticles(allArticles).map((art: Article) => {
+  let deduped = deduplicateArticles(allArticles).map((art: Article) => {
     const text = `${art.title} ${art.summary || ""}`.toLowerCase();
-    
-    // Mapeo más robusto
     if (text.includes("puerto libertador")) art.neighborhood = "Puerto Libertador";
     else if (text.includes("montelibano") || text.includes("montelíbano")) art.neighborhood = "Montelíbano";
     else if (text.includes("sahagun") || text.includes("sahagún")) art.neighborhood = "Sahagún";
     else if (text.includes("planeta rica")) art.neighborhood = "Planeta Rica";
-    else if (text.includes("lorica") || text.includes("santa cruz de lorica")) art.neighborhood = "Lorica";
+    else if (text.includes("lorica")) art.neighborhood = "Lorica";
     else if (text.includes("tierralta")) art.neighborhood = "Tierralta";
     else if (text.includes("chinú") || text.includes("chinu")) art.neighborhood = "Chinú";
     else if (text.includes("monteria") || text.includes("montería")) art.neighborhood = "Montería";
-    else if (text.includes("caucasia")) art.neighborhood = "Caucasia";
     else if (text.includes("cereté") || text.includes("cerete")) art.neighborhood = "Cereté";
-    else art.neighborhood = "Córdoba (General)"; // Evita sesgo total hacia Montería
-
+    else art.neighborhood = "Córdoba"; 
     return art;
   });
 
-  // Ordenar por más reciente primero
   deduped.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
   const fetchedAt = new Date().toISOString();
 
-  // 3. GUARDADO INTELIGENTE (UPSERT)
-  // ... (mismo inicio de código hasta el mapeo de municipios)
-
-  // 3. GUARDADO INTELIGENTE (UPSERT)
+  let finalArticles = deduped;
+  
+  // --- CLASIFICACIÓN CON IA ---
   if (deduped.length > 0) {
+    try {
+      console.log(`🧠 Clasificando ${deduped.length} noticias con DeepSeek...`);
+      const result = await classifyArticles(deduped);
+      // Llamada usando el módulo para asegurar compatibilidad
+      finalArticles = Array.isArray(result) ? result : deduped;
+    } catch (err) {
+      console.error("❌ Error en clasificación IA:", err);
+      finalArticles = deduped; // Si falla, volvemos a los datos originales
+    }
+  }
+
+  // --- GUARDADO DE NOTICIAS ---
+  if (Array.isArray(finalArticles) && finalArticles.length > 0) {
+    const toSave = finalArticles.filter(a => a.title && a.title.trim() !== "");
     const { error } = await supabaseAdmin.from("articles").upsert(
-      deduped.map((a: Article) => ({
+      toSave.map((a) => ({
         id: a.id,
         title: a.title,
         source: a.source,
@@ -88,36 +98,49 @@ export async function fetchAllNews(): Promise<NewsResponse> {
         description: a.summary || "Sin descripción", 
         url: a.url,
         fetched_at: fetchedAt,
-        topic: String(a.topic || "GENERAL").toUpperCase(),
-        neighborhood: a.neighborhood, 
+        topic: (a.topic || "GENERAL").toUpperCase(),
+        neighborhood: a.neighborhood || "Córdoba",
+        threat_level: a.threat_level || "Bajo",
+        sentiment: a.sentiment || "Neutral",
+        alert: a.alert || false
       })),
       { onConflict: "id" }
     );
-    if (error) console.error("[supabase] upsert failed:", error.message);
+    if (error) console.error("❌ Error Supabase Upsert:", error.message); 
   }
 
-  // 4. CLASIFICACIÓN CON IA (DeepSeek / Gemini)
-  if (deduped.length > 0) {
-    classifyArticles(deduped)
-      .then(async (classified: any[]) => { // Usamos any[] temporalmente para recibir los datos de la IA
-          const updates = classified.map((a) => ({
-            id: a.id,
-            topic: a.topic,
-            neighborhood: a.neighborhood,
-            threat_level: a.threat_level || "Bajo",
-            sentiment: a.sentiment || "Neutral",
-            alert: a.alert || false
-          }));
-          
-          // Actualizamos en Supabase
-          const { error: updateError } = await supabaseAdmin
-            .from("articles")
-            .upsert(updates, { onConflict: "id" });
-            
-          if (updateError) console.error("[Update Error]:", updateError.message);
-      })
-      .catch((err) => console.error("[Intelligence Error]:", err.message));
+  // --- NUEVO: GENERAR Y GUARDAR ANÁLISIS ESTRATÉGICO (SitRep) ---
+  if (finalArticles.length > 0) {
+    try {
+      console.log("📊 Generando análisis estratégico de situación...");
+      const reportText = await generateStrategicReport(finalArticles);
+      
+      const { error: reportError } = await supabaseAdmin
+        .from("analysis")
+        .upsert({ 
+          id: 1, 
+          content: reportText, 
+          created_at: new Date().toISOString() 
+        });
+
+      if (reportError) console.error("❌ Error guardando SitRep:", reportError.message);
+      else console.log("✅ SitRep actualizado correctamente.");
+    } catch (err) {
+      console.error("❌ Fallo al generar reporte estratégico:", err);
+    }
   }
 
-  return { articles: deduped, fetchedAt, total: deduped.length };
+  return { articles: finalArticles, fetchedAt, total: finalArticles.length };
+}
+
+// Ejecución manual
+if (require.main === module) {
+  (async () => {
+    try {
+      const result = await fetchAllNews();
+      console.log(`🎉 PROCESO COMPLETADO: ${result.total} noticias.`);
+    } catch (error) {
+      console.error("❌ Error Crítico:", error);
+    }
+  })();
 }
