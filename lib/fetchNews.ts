@@ -150,7 +150,7 @@ export async function fetchAllNews(): Promise<NewsResponse> {
         description: a.summary || "Sin descripción", 
         url: a.url,
         fetched_at: fetchedAt,
-        topic: (a.topic || "GENERAL").toUpperCase(),
+        topic: (a.topic || "General"),
         neighborhood: a.neighborhood || "Córdoba",
         threat_level: a.threat_level || "Bajo",
         sentiment: a.sentiment || "Neutral",
