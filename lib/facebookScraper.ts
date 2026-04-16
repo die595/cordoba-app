@@ -1,7 +1,8 @@
 import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 
-export async function scrapeFacebookOrganis() {
+export async function scrapeFacebookOrganis(url: string) {
+  console.log(`Iniciando scrape en: ${url}`);
   let browser = null;
   
   // Detectamos si estamos en local o en Vercel
