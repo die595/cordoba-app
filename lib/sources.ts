@@ -49,11 +49,21 @@ export const RSS_SOURCES: FeedSource[] = [
     color: "green",
   },
   {
-  name: "Twitter X",
-  url: "https://news.google.com/rss/search?q=site:twitter.com+Cordoba+Colombia+judicial+OR+seguridad+when:24h&hl=es-419&gl=CO&ceid=CO:es-419",
-  filterRequired: true,
-  color: "lime",
+    name: "Twitter X",
+    url: "https://news.google.com/rss/search?q=site:twitter.com+Cordoba+Colombia+judicial+OR+seguridad+when:24h&hl=es-419&gl=CO&ceid=CO:es-419",
+    filterRequired: true,
+    color: "lime",
   },
-
-
-];
+  { 
+    name: "Organis Noticias", 
+    url: "https://www.facebook.com/organisnoticiasss", // <-- Coma añadida aquí
+    filterRequired: true,
+    color: "lime", 
+  },
+  { 
+    name: "Piotico 1109", 
+    url: "https://www.facebook.com/piotico1109", // <-- Coma añadida aquí
+    filterRequired: true,
+    color: "lime",
+  },
+]; // <-- Solo un cierre aquí

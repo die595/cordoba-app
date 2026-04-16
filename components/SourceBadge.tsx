@@ -6,6 +6,8 @@ const SOURCE_COLORS: Record<string, string> = {
   "lalenguacaribe":    "bg-teal-900/40 text-teal-300 border border-teal-700/40",
   "eltiempocordoba": "bg-orange-900/40 text-orange-300 border border-orange-700/40",
   "larazon":         "bg-red-900/40 text-red-300 border border-red-700/40",
+  "Organis Noticias": "bg-blue-600/20 text-blue-400 border-blue-600/50",
+  "Conflicto Social": "bg-orange-900/50 text-orange-300 border border-orange-700/50",
   
   // NUEVAS FUENTES AÑADIDAS:
   "gobernacion cordoba": "bg-cyan-900/40 text-cyan-300 border border-cyan-700/40",

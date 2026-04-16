@@ -10,25 +10,49 @@ import {
 import { ArticleSection } from "@/components/ArticleSection";
 import { Header } from "@/components/Header";
 import { Dashboard } from "@/components/Dashboard";
-// 1. IMPORTA EL NUEVO COMPONENTE AQUÍ
 import { StrategicPanel } from "@/components/StrategicPanel";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-export const revalidate = 60; 
+// CONFIGURACIÓN DE FRECUENCIA (6 HORAS)
+export const revalidate = 21600; 
+
+async function getLatestSitRep() {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("analysis")
+      .select("content")
+      .eq("id", 1)
+      .single();
+    
+    if (error || !data) return "SITREP: Esperando actualización de inteligencia...";
+    return data.content;
+  } catch (e) {
+    return "Error al conectar con la base de datos de inteligencia.";
+  }
+}
 
 export default async function Home() {
-  // 1. Obtenemos las noticias y las subimos a Supabase
+  /**
+   * 1. RECOLECCIÓN TOTAL
+   * fetchAllNews() ya contiene la lógica para recorrer RSS_SOURCES.
+   * Al ejecutarlo aquí, el sistema entra a:
+   * - Chicanoticias, El Meridiano, La Razón, Twitter X, etc.
+   * - Facebook (Piotico y Organis).
+   */
   const { articles, fetchedAt, total } = await fetchAllNews();
 
-  // 2. Ejecutamos las consultas en paralelo
-  const [stats, weekly, words, municipalityData, dailySummary] = await Promise.all([
+  // 2. PROCESAMIENTO DE DATOS Y SITREP
+  // Ejecutamos las consultas estadísticas y traemos el reporte que la IA acaba de generar
+  const [stats, weekly, words, municipalityData, dailySummary, realStrategicReport] = await Promise.all([
     getDashboardStats(),      
     getWeeklyActivity(),      
     getWordFrequencies(),     
     getMunicipalityArticles(),
-    getDailySummary(),        
+    getDailySummary(),
+    getLatestSitRep(), 
   ]);
 
-  // --- LÓGICA DE INTELIGENCIA DE SEGURIDAD ---
+  // 3. FILTRADO DE ALERTAS CRÍTICAS (Para el Dashboard)
   const highRisks = (municipalityData as any[] || []).filter((a: any) => a.threat_level === 'ALTO');
 
   const validSentiments = (municipalityData as any[] || []).filter((a: any) => a.sentiment !== null);
@@ -37,18 +61,15 @@ export default async function Home() {
     ? (totalSentiment / validSentiments.length).toFixed(2) 
     : "0.00";
 
-  // 3. REPORTE ESTRATÉGICO (Por ahora dummy, luego lo traemos de la IA)
-  const strategicReport = "SITREP: Se identifica una concentración de alertas en el área metropolitana de Montería y el Bajo Sinú. Los niveles de riesgo 'ALTO' están vinculados principalmente a temas de orden público y seguridad ciudadana. Se recomienda monitoreo constante de las fuentes en Sahagún debido a un incremento en menciones de infraestructura.";
-
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
+      {/* El Header muestra el total sumado de TODAS las fuentes */}
       <Header total={total} fetchedAt={fetchedAt} />
       
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 space-y-6 pt-6">
         
-        {/* --- AQUÍ SE COLOCA EL PANEL ESTRATÉGICO --- */}
-        {/* Lo ponemos justo arriba de los gráficos para que sea lo primero que vea el analista */}
-        <StrategicPanel report={strategicReport} />
+        {/* REPORTE ESTRATÉGICO GENERADO CON TODAS LAS FUENTES */}
+        <StrategicPanel report={realStrategicReport} />
 
         <Dashboard 
           stats={stats as any} 
@@ -60,6 +81,7 @@ export default async function Home() {
           avgSentiment={avgSentiment}
         />
 
+        {/* Lista completa de noticias de Chicanoticias, El Meridiano, Piotico, etc. */}
         <ArticleSection articles={articles} />
       </main>
 
