@@ -1,0 +1,36 @@
+{"timestamp":"00:00:03.990","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:08.561","source":"Server","level":"LOG","message":"◇ injected env (0) from .env.local // tip: ⌁ auth for agents [www.vestauth.com]"}
+{"timestamp":"00:00:08.565","source":"Server","level":"LOG","message":"--- DEBUG CONEXIÓN ---"}
+{"timestamp":"00:00:08.567","source":"Server","level":"LOG","message":"URL detectada: \"SÍ (https://qckgrpvlexon...)\""}
+{"timestamp":"00:00:08.567","source":"Server","level":"LOG","message":"----------------------"}
+{"timestamp":"00:00:09.264","source":"Server","level":"LOG","message":"◇ injected env (0) from .env.local // tip: ⌁ auth for agents [www.vestauth.com]"}
+{"timestamp":"00:00:09.321","source":"Server","level":"LOG","message":"🚀 [DATACORE] Recolección amplia con ventana temporal de 15 días..."}
+{"timestamp":"00:00:09.442","source":"Server","level":"ERROR","message":"(node:16064) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.\n(Use `node --trace-deprecation ...` to show where the warning was created)"}
+{"timestamp":"00:00:10.881","source":"Server","level":"ERROR","message":"[fetchFeed] Error en Elmeridiano: Error: Invalid character in entity name\nLine: 0\nColumn: 6052\nChar: &"}
+{"timestamp":"00:00:11.457","source":"Server","level":"LOG","message":"🕵️ Detectadas 2 fuentes de Facebook..."}
+{"timestamp":"00:00:11.457","source":"Server","level":"LOG","message":"📡 Extrayendo datos de: Organis Noticias..."}
+{"timestamp":"00:00:11.459","source":"Server","level":"LOG","message":"Iniciando scrape en: https://www.facebook.com/organisnoticiasss"}
+{"timestamp":"00:00:11.459","source":"Server","level":"LOG","message":"🌐 Iniciando navegador en modo LOCAL..."}
+{"timestamp":"00:00:15.270","source":"Server","level":"LOG","message":"✅ 1 publicaciones de Organis Noticias añadidas."}
+{"timestamp":"00:00:15.270","source":"Server","level":"LOG","message":"📡 Extrayendo datos de: Piotico 1109..."}
+{"timestamp":"00:00:15.271","source":"Server","level":"LOG","message":"Iniciando scrape en: https://www.facebook.com/piotico1109"}
+{"timestamp":"00:00:15.271","source":"Server","level":"LOG","message":"🌐 Iniciando navegador en modo LOCAL..."}
+{"timestamp":"00:00:20.160","source":"Server","level":"LOG","message":"✅ 1 publicaciones de Piotico 1109 añadidas."}
+{"timestamp":"00:00:20.164","source":"Server","level":"LOG","message":"🧠 Clasificando 51 noticias recientes con IA..."}
+{"timestamp":"00:01:09.215","source":"Server","level":"LOG","message":"🚀 [DATACORE] Recolección amplia con ventana temporal de 15 días..."}
+{"timestamp":"00:01:10.932","source":"Server","level":"ERROR","message":"[fetchFeed] Error en Elmeridiano: Error: Invalid character in entity name\nLine: 0\nColumn: 6052\nChar: &"}
+{"timestamp":"00:01:11.246","source":"Server","level":"LOG","message":"🕵️ Detectadas 2 fuentes de Facebook..."}
+{"timestamp":"00:01:11.246","source":"Server","level":"LOG","message":"📡 Extrayendo datos de: Organis Noticias..."}
+{"timestamp":"00:01:11.247","source":"Server","level":"LOG","message":"Iniciando scrape en: https://www.facebook.com/organisnoticiasss"}
+{"timestamp":"00:01:11.247","source":"Server","level":"LOG","message":"🌐 Iniciando navegador en modo LOCAL..."}
+{"timestamp":"00:01:15.111","source":"Server","level":"LOG","message":"✅ 1 publicaciones de Organis Noticias añadidas."}
+{"timestamp":"00:01:15.111","source":"Server","level":"LOG","message":"📡 Extrayendo datos de: Piotico 1109..."}
+{"timestamp":"00:01:15.112","source":"Server","level":"LOG","message":"Iniciando scrape en: https://www.facebook.com/piotico1109"}
+{"timestamp":"00:01:15.112","source":"Server","level":"LOG","message":"🌐 Iniciando navegador en modo LOCAL..."}
+{"timestamp":"00:01:18.712","source":"Server","level":"LOG","message":"✅ 1 publicaciones de Piotico 1109 añadidas."}
+{"timestamp":"00:01:18.713","source":"Server","level":"LOG","message":"🧠 Clasificando 51 noticias recientes con IA..."}
+{"timestamp":"00:01:54.806","source":"Server","level":"LOG","message":"📊 Actualizando SitRep estratégico..."}
+{"timestamp":"00:02:04.551","source":"Server","level":"LOG","message":"✅ Proceso completado."}
+{"timestamp":"00:02:50.874","source":"Server","level":"LOG","message":"📊 Actualizando SitRep estratégico..."}
+{"timestamp":"00:03:09.579","source":"Server","level":"LOG","message":"✅ Proceso completado."}
+{"timestamp":"00:03:11.796","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}

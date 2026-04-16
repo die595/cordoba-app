@@ -54,9 +54,10 @@ async function fetchFeed(url: string, sourceName: string): Promise<Article[]> {
 }
 
 export async function fetchAllNews(): Promise<NewsResponse> {
-  console.log("🚀 [DATACORE] Recolección amplia con ventana temporal de 15 días...");
+  const isCloud = process.env.NODE_ENV === 'production';
+  console.log(`🚀 [DATACORE] Iniciando recolección. Entorno: ${isCloud ? 'NUBE (Optimizado)' : 'LOCAL (Completo)'}`);
   
-  // 1. Recolectar noticias RSS (Filtramos solo las que NO son de Facebook)
+  // 1. Recolectar noticias RSS (Fuentes rápidas)
   const rssOnlySources = RSS_SOURCES.filter(s => !s.url.includes("facebook.com"));
   const rssResults = await Promise.allSettled(
     rssOnlySources.map((s) => fetchFeed(s.url, s.name))
@@ -67,42 +68,43 @@ export async function fetchAllNews(): Promise<NewsResponse> {
     if (result.status === "fulfilled") rawArticles.push(...result.value);
   }
 
-  // 2. Recolectar Facebook Dinámicamente (Organis, Piotico, etc.)
-  try {
-    const fbSources = RSS_SOURCES.filter(s => s.url.includes("facebook.com"));
-    console.log(`🕵️ Detectadas ${fbSources.length} fuentes de Facebook...`);
+  // 2. Recolectar Facebook (SOLO EN LOCAL PARA EVITAR TIMEOUT Y ERROR DE NAVEGADOR EN NUBE)
+  if (!isCloud) {
+    try {
+      const fbSources = RSS_SOURCES.filter(s => s.url.includes("facebook.com"));
+      console.log(`🕵️ Detectadas ${fbSources.length} fuentes de Facebook...`);
 
-    for (const source of fbSources) {
-      console.log(`📡 Extrayendo datos de: ${source.name}...`);
-      
-      // Enviamos la URL específica de la fuente al scraper
-      const fbPosts = await scrapeFacebookOrganis(source.url); 
-      
-      if (fbPosts && fbPosts.length > 0) {
-        const fbArticles: Article[] = fbPosts.map((text, index) => {
-          const cleanText = text || '';
-          // Añadimos source.name al hash para evitar colisiones de ID entre páginas
-          const generatedId = uuidv5(cleanText.substring(0, 100) + index + source.name, NAMESPACE_UUID);
-          
-          return {
-            id: generatedId,
-            title: cleanText.substring(0, 90).replace(/\n/g, " ") + "...",
-            summary: cleanText,
-            source: source.name,
-            publishedAt: new Date().toISOString(),
-            url: source.url,
-            neighborhood: "Córdoba"
-          };
-        });
-        rawArticles.push(...fbArticles);
-        console.log(`✅ ${fbArticles.length} publicaciones de ${source.name} añadidas.`);
+      for (const source of fbSources) {
+        console.log(`📡 Extrayendo datos de: ${source.name}...`);
+        const fbPosts = await scrapeFacebookOrganis(source.url); 
+        
+        if (fbPosts && fbPosts.length > 0) {
+          const fbArticles: Article[] = fbPosts.map((text, index) => {
+            const cleanText = text || '';
+            const generatedId = uuidv5(cleanText.substring(0, 100) + index + source.name, NAMESPACE_UUID);
+            
+            return {
+              id: generatedId,
+              title: cleanText.substring(0, 90).replace(/\n/g, " ") + "...",
+              summary: cleanText,
+              source: source.name,
+              publishedAt: new Date().toISOString(),
+              url: source.url,
+              neighborhood: "Córdoba"
+            };
+          });
+          rawArticles.push(...fbArticles);
+          console.log(`✅ ${fbArticles.length} publicaciones de ${source.name} añadidas.`);
+        }
       }
+    } catch (fbErr) {
+      console.error("❌ Error recolectando Facebook:", fbErr);
     }
-  } catch (fbErr) {
-    console.error("❌ Error recolectando Facebook:", fbErr);
+  } else {
+    console.log("⚠️ [DATACORE] Modo Nube: Saltando Facebook para garantizar Build < 50s.");
   }
 
-  // 3. Filtrar solo por FECHA (15 días) y mapear barrios
+  // 3. Filtrar por fecha y mapear barrios
   const processedArticles = rawArticles
     .filter(art => esNoticiaReciente(art.publishedAt))
     .map((art: Article) => {
@@ -127,19 +129,23 @@ export async function fetchAllNews(): Promise<NewsResponse> {
   deduped.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
   const fetchedAt = new Date().toISOString();
 
+  // --- OPTIMIZACIÓN DE INTELIGENCIA ARTIFICIAL ---
+  // Si estamos en la nube, limitamos a las 10 noticias más recientes para no exceder los 60 segundos
   let finalArticles = deduped;
+  const articlesToClassify = isCloud ? deduped.slice(0, 10) : deduped;
   
-  if (deduped.length > 0) {
+  if (articlesToClassify.length > 0) {
     try {
-      console.log(`🧠 Clasificando ${deduped.length} noticias recientes con IA...`);
-      const result = await classifyArticles(deduped);
-      finalArticles = Array.isArray(result) ? result : deduped;
+      console.log(`🧠 Clasificando ${articlesToClassify.length} noticias con IA (${isCloud ? 'Modo Rápido' : 'Modo Completo'})...`);
+      const result = await classifyArticles(articlesToClassify);
+      finalArticles = Array.isArray(result) ? result : articlesToClassify;
     } catch (err) {
       console.error("❌ Error en clasificación IA:", err);
-      finalArticles = deduped;
+      finalArticles = articlesToClassify;
     }
   }
 
+  // 4. Guardar en Supabase
   if (Array.isArray(finalArticles) && finalArticles.length > 0) {
     await supabaseAdmin.from("articles").upsert(
       finalArticles.map((a: any) => ({
@@ -160,6 +166,7 @@ export async function fetchAllNews(): Promise<NewsResponse> {
     );
   }
 
+  // 5. Generar SitRep Estratégico
   if (finalArticles.length > 0) {
     try {
       console.log("📊 Actualizando SitRep estratégico...");
@@ -169,7 +176,7 @@ export async function fetchAllNews(): Promise<NewsResponse> {
         content: reportText, 
         created_at: new Date().toISOString() 
       });
-      console.log("✅ Proceso completado.");
+      console.log("✅ Proceso completado con éxito.");
     } catch (err) {
       console.error("❌ Fallo SitRep:", err);
     }
@@ -182,9 +189,9 @@ if (require.main === module) {
   (async () => {
     try {
       const result = await fetchAllNews();
-      console.log(`🎉 TOTAL PROCESADO: ${result.total} noticias (últimos 15 días).`);
+      console.log(`🎉 FINALIZADO: ${result.total} noticias procesadas.`);
     } catch (error) {
-      console.error("❌ Error Crítico:", error);
+      console.error("❌ Error Crítico en ejecución manual:", error);
     }
   })();
 }

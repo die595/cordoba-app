@@ -1,0 +1,10 @@
+{
+  "[project]/components/BarriosMap.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/components/BarriosMap.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/node_modules_leaflet_dist_leaflet-src_08wz54f.js",
+      "static/chunks/components_BarriosMap_tsx_0xzs2m-._.js",
+      "static/chunks/components_BarriosMap_tsx_0a0r6c0._.js"
+    ]
+  }
+}
